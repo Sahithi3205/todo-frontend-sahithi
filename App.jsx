@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "./App.css";
-import "./index.css";
+
 
 export default function App() {
   const [tasks, setTasks] = useState([]);
