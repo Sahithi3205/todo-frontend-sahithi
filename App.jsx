@@ -2,29 +2,49 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "./App.css";
 
-
 export default function App() {
   const [tasks, setTasks] = useState([]);
   const [text, setText] = useState("");
 
+  const API_URL = import.meta.env.VITE_API_URL;
+
   const fetchTasks = async () => {
-    const res = await axios.get(`${import.meta.env.VITE_API_URL}/tasks`);
-    setTasks(res.data);
+    try {
+      const res = await axios.get(API_URL + "/tasks");
+      setTasks(res.data);
+    } catch (error) {
+      console.log("Could not connect to backend:", error);
+    }
   };
 
   useEffect(() => {
-    fetchTasks();
+    if (API_URL) {
+      fetchTasks();
+    }
   }, []);
 
-  const addTasks = async () => {
-    await axios.post(`${import.meta.env.VITE_API_URL}/tasks`, { text });
-    setText("");
-    fetchTasks();
+  const addTask = async () => {
+    if (!text.trim()) return;
+
+    try {
+      const res = await axios.post(API_URL + "/tasks", {
+        text: text.trim(),
+      });
+
+      setTasks([...tasks, res.data]);
+      setText("");
+    } catch (error) {
+      console.log("Could not add task:", error);
+    }
   };
 
-  const deleteTasks = async (id) => {
-    await axios.delete(`${import.meta.env.VITE_API_URL}/tasks/${id}`);
-    fetchTasks();
+  const deleteTask = async (id) => {
+    try {
+      await axios.delete(API_URL + "/tasks/" + id);
+      setTasks(tasks.filter((task) => task._id !== id));
+    } catch (error) {
+      console.log("Could not delete task:", error);
+    }
   };
 
   return (
@@ -38,13 +58,13 @@ export default function App() {
         onChange={(e) => setText(e.target.value)}
       />
 
-      <button onClick={addTasks}>Add</button>
+      <button onClick={addTask}>Add</button>
 
       <ol>
         {tasks.map((task) => (
           <li key={task._id}>
             {task.text}
-            <button onClick={() => deleteTasks(task._id)}>
+            <button onClick={() => deleteTask(task._id)}>
               Delete
             </button>
           </li>
@@ -53,3 +73,4 @@ export default function App() {
     </div>
   );
 }
+
